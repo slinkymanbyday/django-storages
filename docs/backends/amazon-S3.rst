@@ -28,6 +28,10 @@ To allow ``django-admin.py`` collectstatic to automatically put your static file
 ``AWS_SECRET_ACCESS_KEY``
     Your Amazon Web Services secret access key, as a string.
 
+.. note::
+
+      If ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` are not set, boto3 internally looks up IAM credentials.
+
 ``AWS_STORAGE_BUCKET_NAME``
     Your Amazon Web Services storage bucket name, as a string.
 
@@ -198,6 +202,35 @@ origin manually for this to work.
 If you need to use multiple storages that are served via CloudFront, pass the
 `custom_domain` parameter to their constructors.
 
+IAM Policy
+----------
+
+The IAM policy permissions needed for most common use cases are:
+
+.. code-block:: json
+
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "VisualEditor0",
+                "Effect": "Allow",
+                "Action": [
+                    "s3:PutObject",
+                    "s3:GetObjectAcl",
+                    "s3:GetObject",
+                    "s3:ListBucket",
+                    "s3:DeleteObject",
+                    "s3:PutObjectAcl"
+                ],
+                "Resource": [
+                    "arn:aws:s3:::example-bucket-name/*",
+                    "arn:aws:s3:::example-bucket-name"
+                ]
+            }
+        ]
+    }
+
 Storage
 -------
 
@@ -240,7 +273,7 @@ An object without a file has limited functionality::
 
 Saving a file enables full functionality::
 
-    >>> obj1.normal.save('django_test.txt', ContentFile('content'))
+    >>> obj1.normal.save('django_test.txt', ContentFile(b'content'))
     >>> obj1.normal
     <FieldFile: tests/django_test.txt>
     >>> obj1.normal.size
@@ -261,7 +294,7 @@ Files can be read in a little at a time, if necessary::
 Save another file with the same name::
 
     >>> obj2 = MyModel()
-    >>> obj2.normal.save('django_test.txt', ContentFile('more content'))
+    >>> obj2.normal.save('django_test.txt', ContentFile(b'more content'))
     >>> obj2.normal
     <FieldFile: tests/django_test.txt>
     >>> obj2.normal.size
